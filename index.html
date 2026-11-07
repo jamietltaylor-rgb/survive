@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Quiet Outside</title>
+<meta name="description" content="Something is listening. Scavenge, dig, save people, and survive 20 days.">
+<style>
+:root{--bg:#0b0c0f;--panel:#15171c;--panel2:#1b1e24;--line:#2a2e37;--txt:#dcd8cc;--dim:#8a8676;--red:#d24b43;--amber:#d9a441;--green:#6fae5a;--blue:#5b8fd1}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font-family:Georgia,'Times New Roman',serif;overflow:hidden}
+#ui{position:fixed;inset:0;overflow:auto;padding:22px 18px 60px;display:flex;justify-content:center}
+.wrap{width:100%;max-width:1020px}
+h1{font-size:clamp(38px,8vw,86px);letter-spacing:.14em;margin:9vh 0 6px;font-weight:400;text-align:center;color:#eee;text-shadow:0 0 34px rgba(210,75,67,.4)}
+h2{font-weight:400;margin:4px 0 10px;font-size:30px;letter-spacing:.04em}
+h3{font-weight:400;color:var(--amber);letter-spacing:.12em;text-transform:uppercase;font-size:14px;margin:24px 0 10px}
+.tag{text-align:center;color:var(--dim);font-style:italic;font-size:18px;margin-bottom:30px}
+.center{text-align:center}
+.dim{color:var(--dim)}.small{font-size:13px}.red{color:var(--red)}.green{color:var(--green)}.amber{color:var(--amber)}
+.btn{font:16px Georgia,serif;background:var(--panel2);color:var(--txt);border:1px solid var(--line);padding:11px 18px;border-radius:5px;cursor:pointer;margin:4px 6px 4px 0;transition:.15s}
+.btn:hover:not([disabled]){border-color:var(--amber);color:#fff}
+.btn[disabled]{opacity:.35;cursor:not-allowed}
+.btn.big{font-size:20px;padding:14px 40px;letter-spacing:.1em}
+.btn.amber{border-color:#7a5c24;background:#2a2213}.btn.red{border-color:#7a2a25;background:#2a1513}
+.mini{font:13px Georgia,serif;background:#232831;color:var(--txt);border:1px solid var(--line);border-radius:4px;padding:5px 9px;cursor:pointer;margin-top:8px}
+.mini:hover{border-color:var(--amber)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px}
+.card.click{cursor:pointer;transition:.15s}.card.click:hover{border-color:var(--amber);transform:translateY(-2px)}
+.card .ic{font-size:30px;margin-right:10px}
+.row{display:flex;align-items:center;margin-bottom:8px}
+.bar{height:6px;background:#262a31;border-radius:3px;overflow:hidden;margin:6px 0}.bar i{display:block;height:100%}
+.top{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.inv{display:flex;gap:14px;flex-wrap:wrap;font-size:17px}
+.inv span{background:var(--panel);border:1px solid var(--line);padding:5px 10px;border-radius:4px}
+.log{background:#101216;border-left:3px solid #3a2f22;padding:10px 16px;margin-top:16px;font-size:15px;max-height:220px;overflow:auto}
+.log p{margin:5px 0}.log p.day{color:var(--amber);font-size:12px;letter-spacing:.15em;text-transform:uppercase;margin-top:10px}
+.warn{background:#24160f;border:1px solid #5c3a1f;padding:10px 14px;border-radius:5px;margin-top:12px}
+label{font-size:14px;margin-right:12px;cursor:pointer}
+.need{margin-top:12px;font-size:15px}
+.pro{color:var(--green);font-size:14px;margin:6px 0 2px}.con{color:var(--red);font-size:14px}
+.tgrid{display:grid;gap:2px;margin-top:12px;user-select:none}
+.tile{aspect-ratio:1;border-radius:2px;cursor:pointer;font-size:clamp(9px,1.6vw,18px);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.tile.can{outline:2px dashed rgba(217,164,65,.7);outline-offset:-3px}
+.tile.can:hover{outline-color:#fff}
+.tile .s{position:absolute;bottom:1px;right:2px;font-size:clamp(7px,.9vw,11px);opacity:.9}
+.modes{margin-top:12px}
+.mode{font:14px Georgia,serif;background:var(--panel);color:var(--txt);border:1px solid var(--line);padding:8px 12px;border-radius:4px;cursor:pointer;margin:3px 4px 3px 0}
+.mode.on{border-color:var(--amber);background:#2a2213;color:#fff}
+.legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;margin-top:16px;font-size:13px;color:var(--dim)}
+.sw{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:middle}
+#cv{position:fixed;inset:0;display:none}
+#dlg{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.75);z-index:10;padding:16px}
+.box{background:var(--panel);border:1px solid var(--line);padding:26px;max-width:540px;border-radius:6px;font-size:17px;line-height:1.55}
+.box .ic{font-size:44px}
+.ending{max-width:640px;margin:8vh auto 0;text-align:center;font-size:19px;line-height:1.7}
+.ending .ic{font-size:70px}
+.elist{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:16px 0}
+.elist span{border:1px solid var(--line);padding:6px 10px;border-radius:4px;font-size:14px}
+.elist span.got{border-color:var(--amber);color:var(--amber)}
+.how{max-width:680px;margin:30px auto 0;font-size:15px;color:var(--dim);line-height:1.7}
+.how b{color:var(--txt)}
+kbd{background:#262a31;border:1px solid #3a3f49;border-radius:3px;padding:1px 6px;font-family:monospace;color:#fff}
+</style>
+</head>
+<body>
+<div id="ui"></div>
+<canvas id="cv"></canvas>
+<div id="dlg"><div class="box" id="dlgbox"></div></div>
+
+<script>
+/* =========================================================
+   THE QUIET OUTSIDE  v1
+   ========================================================= */
+const $=s=>document.querySelector(s);
+const ui=$('#ui'),cv=$('#cv'),cx=cv.getContext('2d');
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const ri2=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function wpick(w){let s=0;for(const k in w)s+=w[k];let r=Math.random()*s;for(const k in w){if((r-=w[k])<0)return k}return Object.keys(w)[0]}
+
+/* ---------- audio ---------- */
+let AC=null,muted=false,drone=null;
+function ac(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}return AC}
+function tone(f,d,type='sine',v=.05,slide=0){if(muted||!ac())return;try{const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(20,f*slide),t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.05)}catch(e){}}
+function hiss(d,v=.1,lp=3000){if(muted||!ac())return;try{const n=AC.sampleRate*d,b=AC.createBuffer(1,n,AC.sampleRate),ch=b.getChannelData(0);for(let i=0;i<n;i++)ch[i]=(Math.random()*2-1)*(1-i/n);const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();f.type='lowpass';f.frequency.value=lp;g.gain.value=v;s.buffer=b;s.connect(f);f.connect(g);g.connect(AC.destination);s.start()}catch(e){}}
+function startDrone(){if(muted||!ac()||drone)return;try{const o=AC.createOscillator(),o2=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=48;o2.type='triangle';o2.frequency.value=48.6;g.gain.value=.025;o.connect(g);o2.connect(g);g.connect(AC.destination);o.start();o2.start();drone={o,o2,g}}catch(e){}}
+function stopDrone(){if(drone){try{drone.o.stop();drone.o2.stop()}catch(e){}drone=null}}
+const heartbeat=()=>{tone(60,.12,'sine',.18);setTimeout(()=>tone(52,.14,'sine',.14),140)};
+const scream=()=>{tone(700,.9,'sawtooth',.06,.25);tone(1050,.7,'square',.025,.3);hiss(.5,.08,1500)};
+
+/* ---------- data ---------- */
+const ITEMS={food:'🥫',water:'💧',meds:'💊',planks:'🪵',metal:'🔩',poles:'🏗️',shovel:'🪏',pickaxe:'⛏️'};
+const INAME={food:'food',water:'water',meds:'medicine',planks:'planks',metal:'metal sheets',poles:'scaffold poles',shovel:'a SHOVEL',pickaxe:'a PICKAXE'};
+const LOCS={
+  supermarket:{name:'Supermarket',ic:'🏪',loot:{food:6,water:5,planks:1}},
+  pharmacy:{name:'Pharmacy',ic:'💊',loot:{meds:6,water:2,food:1},surv:'maya'},
+  hardware:{name:'Hardware Store',ic:'🔧',loot:{planks:4,metal:4,poles:2,shovel:1,pickaxe:1}},
+  school:{name:'School',ic:'🏫',loot:{food:3,water:3,meds:1,planks:2},surv:'leo',file:true},
+  office:{name:'Office Block',ic:'🏢',loot:{water:3,food:2,metal:3,poles:1,pickaxe:.5},surv:'dex',file:true},
+  house:{name:'Suburban House',ic:'🏠',loot:{food:3,water:2,planks:3,meds:1,shovel:.6},surv:'tom'},
+  church:{name:'Old Church',ic:'⛪',loot:{food:2,water:2,meds:2,planks:2},surv:'dog',file:true},
+};
+const STARTS={
+  supermarket:{pro:'Loads of food and water to start',con:'Huge glass windows. It finds you more often.',inv:{food:14,water:10,meds:0,planks:1,metal:0,poles:0},exposure:.15,cap:6,dirtMax:10},
+  office:{pro:'Room for 6 · building materials in storage',con:'Hardly any food',inv:{food:3,water:6,meds:1,planks:3,metal:3,poles:1},exposure:.08,cap:6,dirtMax:16},
+  pharmacy:{pro:'Stacked with medicine',con:'Tiny. Room for only 3 people.',inv:{food:4,water:5,meds:8,planks:0,metal:0,poles:0},exposure:.06,cap:3,dirtMax:8},
+  house:{pro:'Garden grows 1 food a day · soft basement (+2 dig energy)',con:'Few supplies',inv:{food:5,water:3,meds:1,planks:2,metal:0,poles:0},exposure:.08,cap:5,dirtMax:14},
+  hardware:{pro:'Shovel, pickaxe and loads of tunnel supports',con:'No food or water at all',inv:{food:1,water:1,meds:0,planks:6,metal:5,poles:3},tools:true,exposure:.09,cap:5,dirtMax:14},
+  church:{pro:'Thick stone walls. The safest place.',con:'Freezing: burns 1 plank a night or everyone gets cold',inv:{food:4,water:4,meds:2,planks:3,metal:0,poles:0},exposure:.03,cap:6,dirtMax:12},
+};
+const SURV={
+  maya:{name:'Maya',role:'Nurse',ic:'🩺',desc:'Heals everyone +10 HP a night (once her wound is treated).',injured:true,
+    meet:"A woman is slumped behind the counter, gripping her leg. \"Please... I'm a nurse. I can keep all of you alive. But this wound needs medicine, soon.\""},
+  tom:{name:'Old Tom',role:'Builder',ic:'🔨',desc:'Reinforces your tunnels every night and barricades the shelter. Eats 2 food.',
+    meet:"An old man sits on the stairs with a toolbox on his knees. \"Built half the houses on this street. Bad knees, big appetite. But I can make any place solid.\""},
+  leo:{name:'Leo',role:'Kid',ic:'🧒',desc:'Squeezes through vents to find extra supplies. Sometimes cries at night.',
+    meet:"A small boy is hiding under a desk, shaking. He doesn't say a word. He just looks at you and holds out his hand."},
+  dex:{name:'Dex',role:'Soldier',ic:'🪖',desc:'You carry +4 items while he\'s with you, and he digs (+2 energy). Can he be trusted?',
+    meet:"A man in torn army gear steps out of the shadows. \"Take me with you. I'll carry double and dig for you. Just make sure there's food.\""},
+  dog:{name:'Biscuit',role:'Dog',ic:'🐕',desc:'Senses the creature. An arrow shows where it is when you scavenge.',
+    meet:"A scruffy dog pads out of the dark, tail low. It whimpers and presses against your leg."},
+};
+const FILES=[
+  "PROJECT LISTENER: Day 41. The subject responds to any sound above 40 decibels. It does not see well. It does not need to.",
+  "PROJECT LISTENER: Containment failure. It has learned to copy voices. If someone knocks and asks to be let in, DO NOT assume it is a person.",
+  "PROJECT LISTENER: Subject L (child, 9) was the only one it never harmed. It goes calm around him. Keep L away from the facility. Keep L safe."
+];
+const RADIO=["📻 Static... \"...anyone hearing this, stay inside. Stay quiet...\"","📻 \"...rescue helicopters are being prepared. Hold on until day 20...\"","📻 \"...do not open your door at night. Whatever you hear...\"","📻 \"...it hunts by sound. Silence is your only weapon...\"","📻 \"...evacuation from the old church car park, day 20...\""];
+const ENDINGS={
+  everyone:{t:'Everyone Made It',ic:'🚁'},rescued:{t:'Rescue',ic:'🚁'},hard:{t:'The Hard Choice',ic:'💔'},alone:{t:'Alone',ic:'🥀'},
+  underground:{t:'The Underground',ic:'🚇'},sewers:{t:'The Sewers',ic:'🌊'},truth:{t:'The Truth',ic:'🌫️'},betrayed:{t:'Betrayed',ic:'🚪'},
+  taken:{t:'Taken',ic:'🌑'},starved:{t:'The Long Hunger',ic:'🍂'},buried:{t:'Buried',ic:'🪦'}
+};
+function gotEndings(){try{return JSON.parse(localStorage.getItem('quietoutside_endings')||'[]')}catch(e){return[]}}
+function saveEnding(e){const g=gotEndings();if(!g.includes(e)){g.push(e);try{localStorage.setItem('quietoutside_endings',JSON.stringify(g))}catch(x){}}}
+
+/* ---------- game state ---------- */
+let G=null,S=null,tMode='dig';
+const has=id=>G.people.some(p=>p.id===id);
+const you=()=>G.people.find(p=>p.id==='you');
+function mkPerson(id){
+  if(id==='you')return{id,name:'You',role:'Survivor',ic:'🧍',hp:100,hunger:0,thirst:0,eat:true,drink:true};
+  if(id.startsWith('stranger')){const n=pick(['Sam','Priya','Jordan','Alex','Rosa','Kai','Nina','Omar']);return{id,name:n,role:'Stranger',ic:'🧑',hp:70,hunger:1,thirst:1,eat:true,drink:true}}
+  const s=SURV[id];return{id,name:s.name,role:s.role,ic:s.ic,hp:s.injured?40:80,hunger:1,thirst:1,eat:true,drink:true,injured:!!s.injured};
+}
+function addLog(t,cls){G.log.push({t,cls})}
+const ST=()=>STARTS[G.start];
+
+function newGame(startId){
+  if(startId==='random')startId=pick(Object.keys(STARTS));
+  const S0=STARTS[startId];
+  G={day:1,max:20,start:startId,inv:{...S0.inv},tools:{shovel:!!S0.tools,pickaxe:!!S0.tools},people:[mkPerson('you')],
+     energy:0,dirt:0,acted:false,log:[],files:0,locs:{},rescued:0,deaths:[],lost:0,left:0,dexBetrayed:false,strangerN:0,
+     storm:false,sewer:false,radio:0,tmsg:''};
+  for(const id in LOCS){if(id===startId)continue;G.locs[id]={visits:0,surv:LOCS[id].surv||null,file:!!LOCS[id].file,tunnel:false,bonus:false}}
+  const sv=LOCS[startId].surv;
+  if(sv){const free=Object.keys(G.locs).filter(k=>!G.locs[k].surv);G.locs[pick(free)].surv=sv}
+  if(LOCS[startId].file){const free=Object.keys(G.locs).filter(k=>!G.locs[k].file);G.locs[pick(free)].file=true}
+  if(startId==='hardware'){G.tools.shovel=true;G.tools.pickaxe=true}
+  G.tunnel=genTunnel();
+  resetEnergy();
+  addLog('— Day 1 —','day');
+  addLog(`You barricade yourself inside the ${LOCS[startId].name.toLowerCase()}. Outside, something is listening. Rescue is coming on day 20, so survive until then.`);
+  addLog('Tip: go scavenging for supplies, or dig tunnels from your basement to reach other buildings without going outside.');
+  dayScreen();
+}
+function resetEnergy(){G.energy=3+(G.tools.shovel?3:0)+(G.tools.pickaxe?1:0)+(G.start==='house'?2:0)+(has('dex')?2:0)}
+const foodNeed=()=>G.people.reduce((s,p)=>s+(p.eat?(p.id==='tom'?2:1):0),0);
+const waterNeed=()=>G.people.reduce((s,p)=>s+(p.drink?1:0),0);
+function invHTML(){return['food','water','meds','planks','metal','poles'].map(k=>`<span title="${INAME[k]}">${ITEMS[k]} ${G.inv[k]}</span>`).join('')+(G.tools.shovel?'<span title="shovel">🪏</span>':'')+(G.tools.pickaxe?'<span title="pickaxe">⛏️</span>':'')}
+
+/* ---------- screens ---------- */
+function show(h){stopScav();ui.innerHTML=h;ui.style.display='flex';cv.style.display='none';ui.scrollTop=0}
+function dlg(h){$('#dlgbox').innerHTML=h;$('#dlg').style.display='flex'}
+function closeDlg(){$('#dlg').style.display='none'}
+
+function titleScreen(){
+  const got=gotEndings();
+  show(`<div class="wrap"><h1>THE QUIET OUTSIDE</h1><div class="tag">Something is out there. It hunts by sound.<br>Survive 20 days.</div>
+  <div class="center"><button class="btn big" onclick="startPick()">BEGIN</button></div>
+  <div class="center dim small" style="margin-top:14px">Endings found: ${got.length} / ${Object.keys(ENDINGS).length}</div>
+  <div class="how">
+  <p><b>Each day</b> you choose: go out scavenging, dig tunnels, or rest. At night everyone needs food and water.</p>
+  <p><b>Scavenging:</b> <kbd>WASD</kbd> move · hold <kbd>Shift</kbd> to sneak (quiet) · hold <kbd>Space</kbd> to sprint (LOUD) · <kbd>E</kbd> search / hide / talk / leave · <kbd>M</kbd> mute. Every sound you make spreads out as a ring. If it reaches the creature, it comes. Hide in wardrobes and cars.</p>
+  <p><b>Tunnels:</b> dig from your basement to other buildings so you can enter them from below, where it's much safer. Weak soil collapses unless you brace it with planks, metal or scaffold poles.</p>
+  <p><b>People:</b> you'll find survivors who can help you, but every one is another mouth to feed. Your choices decide which of the 11 endings you get.</p>
+  <p class="small">Best played on a computer with headphones.</p></div></div>`);
+}
+function startPick(){
+  ac();
+  let h=`<div class="wrap"><h2 style="margin-top:4vh">Where do you hide?</h2><p class="dim">Your starting shelter changes everything.</p><div class="grid">`;
+  for(const id in STARTS){const s=STARTS[id],L=LOCS[id];
+    h+=`<div class="card click" onclick="newGame('${id}')"><div class="row"><span class="ic">${L.ic}</span><b style="font-size:19px">${L.name}</b></div><div class="pro">＋ ${s.pro}</div><div class="con">－ ${s.con}</div><div class="dim small" style="margin-top:6px">Room for ${s.cap} people</div></div>`}
+  h+=`<div class="card click" onclick="newGame('random')"><div class="row"><span class="ic">🎲</span><b style="font-size:19px">Random</b></div><div class="dim">Wake up somewhere. Anywhere.</div></div></div>
+  <p><button class="btn" onclick="titleScreen()">← Back</button></p></div>`;
+  show(h);
+}
+function hungerTxt(p){return p.hunger>=2?'<span class="red">starving</span>':p.hunger===1?'<span class="amber">hungry</span>':'fed'}
+function thirstTxt(p){return p.thirst>=2?'<span class="red">dehydrated</span>':p.thirst===1?'<span class="amber">thirsty</span>':'hydrated'}
+function personCard(p,i){
+  const c=p.hp>60?'var(--green)':p.hp>30?'var(--amber)':'var(--red)';
+  return `<div class="card"><div class="row"><span class="ic">${p.ic}</span><div><b>${p.name}</b><div class="dim small">${p.role}${p.injured?' · <span class="red">wounded, needs medicine</span>':''}</div></div></div>
+  <div class="bar"><i style="width:${clamp(p.hp,0,100)}%;background:${c}"></i></div>
+  <div class="small">${Math.ceil(p.hp)} HP · ${hungerTxt(p)} · ${thirstTxt(p)}</div>
+  <div style="margin-top:6px"><label><input type="checkbox" ${p.eat?'checked':''} onchange="G.people[${i}].eat=this.checked;dayScreen()"> Eat${p.id==='tom'?' (2)':''}</label>
+  <label><input type="checkbox" ${p.drink?'checked':''} onchange="G.people[${i}].drink=this.checked;dayScreen()"> Drink</label></div>
+  ${G.inv.meds>0&&(p.hp<100||p.injured)?`<button class="mini" onclick="useMed(${i})">💊 Give medicine</button>`:''}
+  ${SURV[p.id]?`<div class="dim small" style="margin-top:6px">${SURV[p.id].desc}</div>`:''}</div>`;
+}
+function dayScreen(){
+  updateTunnelLinks();
+  const L=LOCS[G.start],s=ST();
+  const fn=foodNeed(),wn=waterNeed();
+  let h=`<div class="wrap"><div class="top"><div><div class="dim">${L.ic} ${L.name}, your shelter</div><h2>Day ${G.day} <span class="dim">/ ${G.max}</span></h2></div><div class="inv">${invHTML()}</div></div>`;
+  if(G.storm)h+=`<div class="warn">⛈️ A storm is raging. It's too dangerous to go outside today, but you can still dig.</div>`;
+  h+=`<div class="log" id="log">${G.log.slice(-14).map(l=>`<p class="${l.cls||''}">${l.t}</p>`).join('')}</div>`;
+  h+=`<h3>Your group (${G.people.length}/${s.cap})</h3><div class="grid">${G.people.map(personCard).join('')}</div>`;
+  h+=`<div class="need">Tonight: <b>${fn}</b> food and <b>${wn}</b> water for everyone ticked. You have <b class="${G.inv.food<fn?'red':''}">${G.inv.food}</b> food and <b class="${G.inv.water<wn?'red':''}">${G.inv.water}</b> water.</div>`;
+  h+=`<h3>What now?</h3><div>
+    <button class="btn" ${G.acted||G.storm?'disabled':''} onclick="pickLoc()">🔦 Go scavenging</button>
+    <button class="btn" onclick="tunnelScreen()">🕳️ Tunnels (${G.energy} energy)</button>
+    <button class="btn" ${G.acted?'disabled':''} onclick="rest()">💤 Rest (+25 HP for you)</button>
+    ${G.sewer?`<button class="btn red" onclick="sewerAsk()">🌊 Escape through the sewers</button>`:''}
+    <button class="btn amber" onclick="endDay()">🌙 End the day</button></div>
+    ${G.acted?'<p class="dim small">You\'ve used your main action today. You can still dig if you have energy, or end the day.</p>':''}
+    <p class="dim small" style="margin-top:20px">Strange files found: ${G.files}/3 · Buildings linked by tunnel: ${Object.values(G.locs).filter(l=>l.tunnel).length}/6</p></div>`;
+  show(h);
+  const lg=$('#log');if(lg)lg.scrollTop=lg.scrollHeight;
+}
+function useMed(i){const p=G.people[i];if(G.inv.meds<=0)return;G.inv.meds--;p.hp=Math.min(100,p.hp+40);if(p.injured){p.injured=false;addLog(`💊 You treated ${p.name}'s wound.`)}tone(660,.2,'sine',.05,1.5);dayScreen()}
+function rest(){G.acted=true;const y=you();y.hp=Math.min(100,y.hp+25);addLog('💤 You rested and got some strength back (+25 HP).');dayScreen()}
+function sewerAsk(){dlg(`<div class="ic">🌊</div><p>The tunnel has broken into the old storm sewers. They run under the whole city and out past the edge of town.</p><p>Leave now with everyone in your group?</p><button class="btn red" onclick="closeDlg();finish('sewers')">Go into the dark</button><button class="btn" onclick="closeDlg()">Not yet</button>`)}
+
+function pickLoc(){
+  let h=`<div class="wrap"><div class="top"><h2>Where will you go?</h2><button class="btn" onclick="dayScreen()">← Back</button></div><p class="dim">Places you've raided before have less left. Places linked by tunnel are much safer, because you come up from below.</p><div class="grid">`;
+  for(const id in G.locs){const l=G.locs[id],L=LOCS[id];
+    const loot=Object.keys(L.loot).filter(k=>!['shovel','pickaxe'].includes(k)).map(k=>ITEMS[k]).join(' ');
+    h+=`<div class="card click" onclick="startScav('${id}')"><div class="row"><span class="ic">${L.ic}</span><b style="font-size:18px">${L.name}</b></div>
+    <div class="small">Usually has: ${loot}</div>
+    <div class="small dim">${l.visits===0?'Untouched':l.visits<3?`Raided ${l.visits}×`:'<span class="red">Picked almost clean</span>'}</div>
+    ${l.tunnel?'<div class="small green">🕳️ Linked by tunnel. Safer entry, more time.</div>':''}
+    ${l.surv?'<div class="small amber">👂 You\'ve heard someone calling from here</div>':''}
+    ${l.bonus?'<div class="small green">📦 Supply crate dropped nearby!</div>':''}</div>`}
+  show(h+'</div></div>');
+}
+
+/* ---------- night ---------- */
+function endDay(){
+  const S0=ST(),lines=[];let youCause=null;
+  for(const p of G.people){
+    const fn=p.id==='tom'?2:1;
+    if(p.eat&&G.inv.food>=fn){G.inv.food-=fn;p.hunger=0}else p.hunger++;
+    if(p.drink&&G.inv.water>=1){G.inv.water--;p.thirst=0}else p.thirst++;
+    if(p.hunger>=2)p.hp-=8*(p.hunger-1);
+    if(p.thirst>=1)p.hp-=12*p.thirst;
+    if(p.injured){p.hp-=12;lines.push(`🩸 ${p.name}'s wound is getting worse.`)}
+  }
+  const maya=G.people.find(p=>p.id==='maya');
+  if(maya&&!maya.injured){G.people.forEach(p=>p.hp=Math.min(100,p.hp+10));lines.push('🩺 Maya checked on everyone (+10 HP).')}
+  if(G.start==='house'){G.inv.food++;lines.push('🥕 The garden gave you 1 food.')}
+  if(G.start==='church'){if(G.inv.planks>0){G.inv.planks--;lines.push('🔥 You burned a plank to keep warm.')}else{G.people.forEach(p=>p.hp-=6);lines.push('🥶 No wood to burn. Everyone froze (-6 HP).')}}
+  if(has('leo')&&Math.random()<.5){const it=pick(['food','water','meds','planks','food','water']);G.inv[it]++;lines.push(`🧒 Leo crawled through the vents and came back with ${ITEMS[it]} 1 ${INAME[it]}.`)}
+  if(has('dex')&&G.day>=4&&G.inv.food<G.people.length*2&&Math.random()<.35){
+    const st=Math.ceil(G.inv.food/2),sw=Math.ceil(G.inv.water/3);G.inv.food-=st;G.inv.water-=sw;
+    G.people=G.people.filter(p=>p.id!=='dex');G.dexBetrayed=true;lines.push(`🚪 In the night, Dex vanished... and took ${st} food and ${sw} water with him.`)}
+  for(const p of [...G.people])if(p.thief&&p.joined<G.day&&Math.random()<.6){
+    const st=Math.min(G.inv.food,3);G.inv.food-=st;G.inv.meds=Math.max(0,G.inv.meds-1);G.people=G.people.filter(q=>q!==p);
+    lines.push(`🚪 ${p.name} slipped out before dawn with ${st} food. You never should have trusted them.`)}
+  // tunnel decay
+  let col=0;
+  for(const c of G.tunnel){if(!c.dug||c.soil==='building')continue;
+    let d=SOIL[c.soil].decay*(c.sup?SUPS[c.sup].mult:1);if(has('tom'))d=Math.max(0,d-5);
+    c.stab-=d;if(c.stab<=0){c.dug=false;c.sup=null;c.stab=0;col++}}
+  if(col)lines.push(`💥 You heard a deep rumble. ${col} section${col>1?'s':''} of tunnel collapsed.`);
+  else if(has('tom')&&G.tunnel.some(c=>c.dug&&c.soil!=='building'))lines.push('🔨 Tom shored up the tunnels.');
+  // night attack
+  let risk=S0.exposure+G.people.length*.015+(has('leo')?.04:0);if(has('tom'))risk*=.5;
+  if(G.day>1&&Math.random()<risk){
+    const others=G.people.filter(p=>p.id!=='you');const v=others.length?pick(others):you();
+    const dmg=has('dog')?20:35;v.hp-=dmg;const lostF=Math.min(G.inv.food,2);G.inv.food-=lostF;
+    if(v.id==='you')youCause='taken';
+    lines.push(`🌑 Something got in during the night. ${v.name==='You'?'You were':v.name+' was'} hurt (-${dmg} HP)${lostF?` and ${lostF} food was ruined`:''}.${has('dog')?' Biscuit\'s barking woke everyone just in time.':''}`)}
+  // deaths
+  for(const p of [...G.people]){
+    if(p.hp>0){p.hp=Math.min(100,p.hp);continue}
+    if(p.id==='you'){G.log.push(...lines.map(t=>({t})));return finish(youCause||'starved')}
+    G.people=G.people.filter(q=>q!==p);G.deaths.push(p.name);lines.push(`🕯️ ${p.name} didn't make it through the night.`)}
+  G.day++;G.acted=false;G.storm=false;G.tmsg='';
+  updateTunnelLinks();resetEnergy();
+  if(G.day>G.max){G.log.push(...lines.map(t=>({t})));return finish()}
+  addLog(`— Day ${G.day} —`,'day');lines.forEach(t=>addLog(t));
+  tone(220,1.2,'sine',.04,.5);
+  // morning event
+  if(G.day>=2&&Math.random()<.4)return morningEvent();
+  dayScreen();
+}
+function morningEvent(){
+  const r=Math.random();
+  if(r<.3&&G.people.length<ST().cap){
+    hiss(.15,.2,800);setTimeout(()=>hiss(.15,.2,800),300);
+    return dlg(`<div class="ic">🚪</div><p>Before dawn there's a soft knock at the door. Three taps.</p><p>A voice whispers: <i>"Please... I've been out here for days. Please let me in."</i></p>
+      <button class="btn amber" onclick="knock(true)">Open the door</button><button class="btn" onclick="knock(false)">Stay silent</button>`);
+  }
+  if(r<.5){G.storm=true;addLog('⛈️ A storm rolled in. Going outside today would be suicide.')}
+  else if(r<.75){addLog(RADIO[G.radio%RADIO.length]);G.radio++}
+  else{const ids=Object.keys(G.locs),id=pick(ids);G.locs[id].bonus=true;addLog(`📦 A helicopter flew over and dropped a supply crate near the ${LOCS[id].name.toLowerCase()}.`)}
+  dayScreen();
+}
+function knock(open){
+  closeDlg();
+  if(!open){addLog('You held your breath until the knocking stopped. The footsteps that left didn\'t sound human... or did they?');return dayScreen()}
+  const r=Math.random();
+  if(r<.18){const v=pick(G.people);v.hp-=30;scream();addLog(`🌑 It wasn't a person. The thing copied a voice. ${v.name==='You'?'You were':v.name+' was'} slashed (-30 HP) before you slammed the door.`,'red');
+    if(you().hp<=0)return finish('taken');if(v.hp<=0&&v.id!=='you'){G.people=G.people.filter(q=>q!==v);G.deaths.push(v.name);addLog(`🕯️ ${v.name} didn't survive.`)}}
+  else{G.strangerN++;const p=mkPerson('stranger'+G.strangerN);p.joined=G.day;if(r>.78)p.thief=true;G.people.push(p);G.rescued++;addLog(`🧑 A frightened survivor called ${p.name} stumbled inside. They don't have much to offer, but they're grateful.`)}
+  dayScreen();
+}
+
+/* ---------- tunnels ---------- */
+const TW=20,TH=12;
+const SOIL={soft:{n:'Soft soil',cost:1,stab:55,decay:10,col:'#4f3d2b'},clay:{n:'Clay',cost:2,stab:75,decay:6,col:'#6a4630'},
+  wet:{n:'Wet soil (river)',cost:1,stab:38,decay:18,col:'#2f4558'},rock:{n:'Rock',cost:3,stab:100,decay:0,col:'#55575c'},building:{n:'Basement',cost:1,stab:100,decay:0,col:'#2a2a2a'}};
+const SUPS={planks:{n:'Wooden planks',ic:'🪵',add:35,mult:.5},metal:{n:'Metal sheets',ic:'🔩',add:50,mult:.25},poles:{n:'Scaffold poles',ic:'🏗️',add:100,mult:0}};
+function genTunnel(){
+  const t=[];
+  for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const r=Math.random();let soil=r<.5?'soft':r<.8?'clay':'rock';if(x===11||x===12)soil=Math.random()<.85?'wet':'soft';t.push({x,y,soil,dug:false,stab:0,sup:null,b:null})}
+  // clump rocks a bit
+  for(let k=0;k<6;k++){const cx0=ri2(4,18),cy0=ri2(0,11);for(let i=0;i<5;i++){const x=clamp(cx0+ri2(-1,1),0,TW-1),y=clamp(cy0+ri2(-1,1),0,TH-1);if(x!==11&&x!==12)t[y*TW+x].soil='rock'}}
+  const T=(x,y)=>t[y*TW+x];
+  const home=T(2,6);home.b='home';home.dug=true;home.stab=100;home.soil='building';
+  [[1,6],[3,6],[2,5],[2,7]].forEach(([x,y])=>{if(T(x,y).soil==='rock')T(x,y).soil='soft'});
+  const spots=[[6,2],[7,10],[9,5],[15,1],[15,9],[17,5]];
+  shuffle(Object.keys(G.locs)).forEach((id,i)=>{const [x,y]=spots[i];const c=T(x,y);c.b=id;c.soil='building'});
+  const sw=T(19,11);sw.b='sewer';sw.soil='building';
+  return t;
+}
+function nbrs(c){const r=[];for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const x=c.x+dx,y=c.y+dy;if(x>=0&&y>=0&&x<TW&&y<TH)r.push(G.tunnel[y*TW+x])}return r}
+function conn(){const s=new Set(),st=G.tunnel[6*TW+2],q=[st];s.add(st);while(q.length){const c=q.pop();for(const n of nbrs(c))if(n.dug&&!s.has(n)){s.add(n);q.push(n)}}return s}
+function updateTunnelLinks(){const s=conn();for(const id in G.locs)G.locs[id].tunnel=false;G.sewer=false;for(const c of s){if(c.b&&G.locs[c.b])G.locs[c.b].tunnel=true;if(c.b==='sewer')G.sewer=true}}
+const dirtMax=()=>ST().dirtMax+6*Object.values(G.locs).filter(l=>l.tunnel).length;
+function tileColor(c){
+  if(c.b){return c.dug?'#3b3426':'#1d1d1f'}
+  if(c.dug){const h=clamp(c.stab,0,100)*1.2;return `hsl(${h},42%,${c.stab<25?30:24}%)`}
+  return SOIL[c.soil].col;
+}
+function tunnelScreen(){
+  closeDlg();updateTunnelLinks();
+  const cs=conn();
+  const tl=(G.tools.shovel?'🪏 shovel ':'🥄 just a spoon ')+(G.tools.pickaxe?'⛏️ pickaxe':'<span class="red">no pickaxe (can\'t dig rock)</span>');
+  let h=`<div class="wrap"><div class="top"><div><div class="dim">Underground map of the neighbourhood</div><h2>🕳️ Tunnels</h2></div><button class="btn" onclick="dayScreen()">← Back to shelter</button></div>
+  <div style="margin-top:10px;font-size:16px">⚡ Energy <b>${G.energy}</b> &nbsp;·&nbsp; 🪣 Dirt <b class="${G.dirt>=dirtMax()?'red':''}">${G.dirt}/${dirtMax()}</b> &nbsp;·&nbsp; ${tl}</div>
+  <div class="modes">${[['dig','⛏ Dig'],['planks',`🪵 Brace: planks (${G.inv.planks})`],['metal',`🔩 Brace: metal (${G.inv.metal})`],['poles',`🏗️ Brace: poles (${G.inv.poles})`]].map(([m,l])=>`<button class="mode ${tMode===m?'on':''}" onclick="tMode='${m}';tunnelScreen()">${l}</button>`).join('')}</div>
+  <div class="tgrid" style="grid-template-columns:repeat(${TW},1fr)">`;
+  G.tunnel.forEach((c,i)=>{
+    const can=tMode==='dig'&&!c.dug&&nbrs(c).some(n=>n.dug&&cs.has(n));
+    const canSup=tMode!=='dig'&&c.dug&&!c.b&&c.sup!==tMode;
+    let ic='';
+    if(c.b==='home')ic='🏠';else if(c.b==='sewer')ic='🌊';else if(c.b)ic=LOCS[c.b].ic;
+    else if(c.sup)ic=`<span style="opacity:.85">${SUPS[c.sup].ic}</span>`;
+    else if(!c.dug&&c.soil==='rock')ic='<span style="opacity:.35">▪</span>';
+    const tip=c.b?(c.b==='home'?'Your shelter':c.b==='sewer'?'Storm sewer: a way out of the city?':LOCS[c.b].name+(c.dug?' (linked)':' (dig into its basement)')):
+      (c.dug?`Tunnel. Stability ${Math.round(c.stab)}%${c.sup?', braced with '+SUPS[c.sup].n:''}. ${cs.has(c)?'':'(cut off!)'}`:`${SOIL[c.soil].n}. Costs ${SOIL[c.soil].cost} energy.`);
+    h+=`<div class="tile ${can||canSup?'can':''}" title="${tip}" style="background:${tileColor(c)};${c.dug&&!cs.has(c)?'opacity:.5':''}" onclick="tclick(${i})">${ic}${c.dug&&!c.b?`<span class="s">${Math.round(c.stab)}</span>`:''}</div>`;
+  });
+  h+=`</div><p id="tinfo" class="${G.tmsgc||''}" style="min-height:24px;margin-top:12px">${G.tmsg||'Click a highlighted tile next to your tunnel to dig. Choose a brace material, then click a dug tile to stop it collapsing.'}</p>
+  <div class="legend">
+   <div><span class="sw" style="background:${SOIL.soft.col}"></span>Soft soil: 1 energy, crumbles fast</div>
+   <div><span class="sw" style="background:${SOIL.clay.col}"></span>Clay: 2 energy, fairly sturdy</div>
+   <div><span class="sw" style="background:${SOIL.wet.col}"></span>Wet river soil: 1 energy, collapses very fast</div>
+   <div><span class="sw" style="background:${SOIL.rock.col}"></span>Rock: 3 energy, needs a pickaxe, never collapses</div>
+   <div>🪵 Planks: +35 stability, halves decay</div><div>🔩 Metal: +50 stability, quarter decay</div><div>🏗️ Poles: 100% stable, permanent</div>
+   <div>Numbers = stability %. At 0 it collapses overnight. Digging next to weak tunnel (under 25) can cave in on you!</div>
+   <div>🪣 Every dig makes dirt. Scavenging trips get rid of 6. Each linked building holds +6 more.</div>
+   <div>Link 4+ buildings for a special ending. Reach 🌊 to escape.</div></div></div>`;
+  show(h);
+}
+function tmsg(t,c){G.tmsg=t;G.tmsgc=c||''}
+function tclick(i){
+  const c=G.tunnel[i];
+  if(tMode==='dig'){
+    const cs=conn();
+    if(c.dug)tmsg('That\'s already dug.');
+    else if(!nbrs(c).some(n=>n.dug&&cs.has(n)))tmsg('You can only dig next to tunnel that connects back to your shelter.','red');
+    else if(c.soil==='rock'&&!G.tools.pickaxe)tmsg('Solid rock. You need a pickaxe for this. Try the hardware store.','red');
+    else if(G.energy<SOIL[c.soil].cost)tmsg(`Not enough energy (needs ${SOIL[c.soil].cost}). Come back tomorrow.`,'red');
+    else if(G.dirt>=dirtMax()&&!c.b)tmsg('Your shelter is full of dirt! Go scavenging to dump some outside.','red');
+    else{
+      G.energy-=SOIL[c.soil].cost;if(!c.b)G.dirt++;c.dug=true;c.stab=SOIL[c.soil].stab;
+      hiss(.25,.15,400);tone(90,.15,'sine',.1);
+      let msg=c.b?(c.b==='sewer'?'🌊 You broke through into the old storm sewers! A way out of the city...':`${LOCS[c.b].ic} You broke into the basement of the ${LOCS[c.b].name}! You can now enter it from below.`):`Dug through ${SOIL[c.soil].n.toLowerCase()}.`;
+      let cls=c.b?'green':'';
+      for(const n of nbrs(c)){if(n.dug&&!n.b&&n.stab<25&&Math.random()<.4){
+        n.dug=false;n.sup=null;n.stab=0;const y=you();y.hp-=25;hiss(.8,.3,300);tone(50,.8,'sawtooth',.1,.5);
+        msg='💥 CAVE-IN! A weak section collapsed on top of you (-25 HP).';cls='red';
+        if(y.hp<=0){addLog('💥 The tunnel caved in.');return finish('buried')}break}}
+      tmsg(msg,cls);updateTunnelLinks();
+    }
+  }else{
+    const m=SUPS[tMode];
+    if(!c.dug||c.b)tmsg('Brace a dug tunnel tile.');
+    else if(c.sup===tMode)tmsg('Already braced with that.');
+    else if(G.inv[tMode]<=0)tmsg(`You don't have any ${m.n.toLowerCase()}.`,'red');
+    else{G.inv[tMode]--;c.sup=tMode;c.stab=Math.min(100,c.stab+m.add);tmsg(`Braced with ${m.n.toLowerCase()}. Stability ${Math.round(c.stab)}%.`,'green');tone(300,.1,'square',.04)}
+  }
+  tunnelScreen();
+}
+
+/* ---------- scavenging ---------- */
+const T=32,MW=44,MH=30;
+const solid=c=>c===2||c===3||c===4||c===5;
+const DIRS=[[1,0],[-1,0],[0,1],[0,-1]];
+function genMap(id,tun){
+  const m=new Uint8Array(MW*MH),I=(x,y)=>y*MW+x;
+  const bx0=3,by0=2,bx1=40,by1=21,hy=11,vx=[15,28];
+  for(let y=by0;y<=by1;y++)for(let x=bx0;x<=bx1;x++)m[I(x,y)]=(x===bx0||x===bx1||y===by0||y===by1)?2:1;
+  for(let y=by0;y<=by1;y++)for(const v of vx)m[I(v,y)]=2;
+  for(let x=bx0;x<=bx1;x++)m[I(x,hy)]=2;
+  const doors=[];const door=(x,y)=>{m[I(x,y)]=1;doors.push([x,y])};
+  const secs=[[bx0+1,vx[0]-1],[vx[0]+1,vx[1]-1],[vx[1]+1,bx1-1]];
+  for(const [a,b] of secs){const x=ri2(a+1,b-2);door(x,hy);door(x+1,hy)}
+  for(const v of vx){let y=ri2(by0+2,hy-3);door(v,y);door(v,y+1);y=ri2(hy+2,by1-3);door(v,y);door(v,y+1)}
+  door(21,by1);door(22,by1);
+  const sd=ri2(hy+2,by1-3);door(bx0,sd);door(bx0,sd+1);
+  const sd2=ri2(by0+2,hy-3);door(bx1,sd2);door(bx1,sd2+1);
+  const rooms=[];for(const [a,b] of secs){rooms.push([a,by0+1,b,hy-1]);rooms.push([a,hy+1,b,by1-1])}
+  const nearDoor=(x,y)=>doors.some(([dx,dy])=>Math.abs(dx-x)<=1&&Math.abs(dy-y)<=1);
+  const wallAdj=(x,y)=>DIRS.some(([a,b])=>m[I(x+a,y+b)]===2);
+  const conts=new Map();
+  const kinds=['shelf','cupboard','fridge','desk','box'];
+  rooms.forEach((r,ri)=>{
+    let n=3+ri2(0,1),tries=0;
+    while(n>0&&tries++<300){const x=ri2(r[0],r[2]),y=ri2(r[1],r[3]);
+      if(m[I(x,y)]===1&&!nearDoor(x,y)&&wallAdj(x,y)){m[I(x,y)]=3;conts.set(I(x,y),{x,y,kind:Math.random()<.2?'glass':pick(kinds),done:false});n--}}
+    if(Math.random()<.7){tries=0;while(tries++<300){const x=ri2(r[0],r[2]),y=ri2(r[1],r[3]);if(m[I(x,y)]===1&&!nearDoor(x,y)&&wallAdj(x,y)){m[I(x,y)]=4;break}}}
+  });
+  // cars on street
+  let cars=0,tries=0;
+  while(cars<5&&tries++<200){const x=ri2(1,40),y=ri2(24,26);if(x>=18&&x<=25)continue;
+    if(m[I(x,y)]===0&&m[I(x+1,y)]===0&&m[I(x-1,y)]===0&&m[I(x+2,y)]===0){m[I(x,y)]=5;m[I(x+1,y)]=5;cars++}}
+  // some cars at top/sides
+  if(m[I(8,0)]===0){m[I(8,0)]=5;m[I(9,0)]=5}
+  m[I(21,27)]=6;
+  const free=()=>{for(let k=0;k<500;k++){const r=pick(rooms),x=ri2(r[0],r[2]),y=ri2(r[1],r[3]);if(m[I(x,y)]===1&&!nearDoor(x,y))return[x,y]}return[10,6]};
+  let hatch=null;if(tun){hatch=free();m[I(hatch[0],hatch[1])]=7}
+  const spawn=hatch||[21,27];
+  const L=G.locs[id];
+  let surv=null,file=null;
+  if(L.surv){let p;do{p=free()}while(Math.hypot(p[0]-spawn[0],p[1]-spawn[1])<8);surv={x:(p[0]+.5)*T,y:(p[1]+.5)*T,id:L.surv}}
+  if(L.file){const p=free();file={x:(p[0]+.5)*T,y:(p[1]+.5)*T}}
+  return{m,conts,spawn,surv,file,rooms};
+}
+const keys={};
+addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if(S&&S.running){if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
+    if(e.code==='KeyE'&&!e.repeat)interact();
+    if(e.code==='KeyP'&&!e.repeat&&!S.dlg)S.paused=!S.paused;}
+  if(e.code==='KeyM'&&!e.repeat){muted=!muted;if(muted)stopDrone();else if(S&&S.running)startDrone()}
+});
+addEventListener('keyup',e=>keys[e.code]=false);
+addEventListener('blur',()=>{for(const k in keys)keys[k]=false;if(S&&S.running&&!S.dlg)S.paused=true});
+function resizeCv(){const d=Math.min(devicePixelRatio||1,2);cv.width=innerWidth*d;cv.height=innerHeight*d;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';cx.setTransform(d,0,0,d,0,0)}
+addEventListener('resize',resizeCv);
+
+function startScav(id){
+  G.acted=true;const L=G.locs[id],tun=L.tunnel;
+  const mp=genMap(id,tun);
+  const dumped=Math.min(G.dirt,6);G.dirt-=dumped;
+  S={id,L,tun,...mp,px:(mp.spawn[0]+.5)*T,py:(mp.spawn[1]+.5)*T,dir:0,hidden:null,bag:[],cap:8+(has('dex')?4:0),
+     time:150+(tun?60:0),hunt:false,rings:[],noiseT:0,search:null,follower:null,trail:[],trailT:0,msg:'',msgT:0,
+     paused:false,running:true,dlg:false,seenHide:false,beatT:0,stepT:0,helpT:0,cryT:rnd(10,20),t:0,dumped};
+  // creature
+  let cxp,cyp;
+  if(tun){cxp=1.5*T;cyp=1.5*T}
+  else{let k=0;do{const r=pick(mp.rooms);cxp=(ri2(r[0],r[2])+.5)*T;cyp=(ri2(r[1],r[3])+.5)*T;k++}while((solid(mp.m[Math.floor(cyp/T)*MW+Math.floor(cxp/T)])||Math.hypot(cxp-S.px,cyp-S.py)<500)&&k<300)}
+  S.cre={x:cxp,y:cyp,state:'wander',tx:cxp,ty:cyp,field:null,tt:-1,distT:0,dormant:tun?20:4,wait:0,lostT:0,lastX:0,lastY:0,anim:0};
+  ui.style.display='none';cv.style.display='block';resizeCv();
+  showMsg(tun?'You climb up through the basement hatch. It\'s quiet down here... for now.':`You slip out into the night towards the ${LOCS[id].name.toLowerCase()}.`,4);
+  startDrone();
+  S.last=performance.now();requestAnimationFrame(scavLoop);
+}
+function stopScav(){if(S&&S.running){S.running=false;stopDrone()}}
+function showMsg(t,d=2.5){S.msg=t;S.msgT=d}
+const tileIdx=(x,y)=>clamp(Math.floor(y/T),0,MH-1)*MW+clamp(Math.floor(x/T),0,MW-1);
+function tileAt(x,y){const tx=Math.floor(x/T),ty=Math.floor(y/T);if(tx<0||ty<0||tx>=MW||ty>=MH)return 2;return S.m[ty*MW+tx]}
+function blocked(x,y,r){return solid(tileAt(x-r,y-r))||solid(tileAt(x+r,y-r))||solid(tileAt(x-r,y+r))||solid(tileAt(x+r,y+r))}
+function los(x0,y0,x1,y1){const d=Math.hypot(x1-x0,y1-y0),n=Math.ceil(d/10);for(let i=1;i<n;i++){const t=i/n;if(tileAt(x0+(x1-x0)*t,y0+(y1-y0)*t)===2)return false}return true}
+function bfsFrom(ti){const d=new Int16Array(MW*MH).fill(-1),q=[ti];d[ti]=0;let h=0;
+  while(h<q.length){const c=q[h++],x=c%MW,y=(c/MW)|0;for(const [a,b] of DIRS){const nx=x+a,ny=y+b;if(nx<0||ny<0||nx>=MW||ny>=MH)continue;const n=ny*MW+nx;if(d[n]>=0||solid(S.m[n]))continue;d[n]=d[c]+1;q.push(n)}}return d}
+function creMove(c,tx,ty,spd,dt){
+  const tt=tileIdx(tx,ty);
+  if(tt!==c.tt||c.distT<=0){c.tt=tt;c.field=bfsFrom(tt);c.distT=.6}
+  c.distT-=dt;
+  const ct=tileIdx(c.x,c.y);let gx=tx,gy=ty;
+  if(ct!==tt){let best=-1,bv=c.field[ct]>=0?c.field[ct]:32000;const x=ct%MW,y=(ct/MW)|0;
+    for(const [a,b] of DIRS){const nx=x+a,ny=y+b;if(nx<0||ny<0||nx>=MW||ny>=MH)continue;const n=ny*MW+nx,v=c.field[n];if(v>=0&&v<bv){bv=v;best=n}}
+    if(best<0)return true;gx=(best%MW+.5)*T;gy=(((best/MW)|0)+.5)*T}
+  const dx=gx-c.x,dy=gy-c.y,d=Math.hypot(dx,dy);
+  if(d>.5){const s=Math.min(d,spd*dt);c.x+=dx/d*s;c.y+=dy/d*s}
+  return Math.hypot(tx-c.x,ty-c.y)<14;
+}
+function randomFloor(){for(let k=0;k<400;k++){const x=ri2(0,MW-1),y=ri2(0,MH-1);if(!solid(S.m[y*MW+x]))return[(x+.5)*T,(y+.5)*T]}return[S.cre.x,S.cre.y]}
+function noise(x,y,r,col){
+  S.rings.push({x,y,r:0,R:r,life:1,col:col||'255,255,255'});
+  const c=S.cre,d=Math.hypot(c.x-x,c.y-y);
+  if(d<r){if(c.dormant>0){c.dormant=0}
+    if(c.state!=='chase'){c.state='investigate';c.tx=x;c.ty=y;c.wait=0}}
+}
+function interact(){
+  if(S.dlg||S.paused||!S.running)return;
+  if(S.hidden){S.hidden=null;showMsg('You creep out of hiding.',1.5);return}
+  if(S.search)return;
+  let best=null,bd=50;
+  const tx=Math.floor(S.px/T),ty=Math.floor(S.py/T);
+  for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const x=tx+dx,y=ty+dy;if(x<0||y<0||x>=MW||y>=MH)continue;
+    const c=S.m[y*MW+x];if(![3,4,5,6,7].includes(c))continue;if(c===3&&S.conts.get(y*MW+x).done)continue;
+    const d=Math.hypot((x+.5)*T-S.px,(y+.5)*T-S.py);if(d<bd){bd=d;best={type:c,x,y,i:y*MW+x}}}
+  if(S.surv&&Math.hypot(S.surv.x-S.px,S.surv.y-S.py)<46)best={type:'surv'};
+  else if(S.file&&Math.hypot(S.file.x-S.px,S.file.y-S.py)<40)best={type:'file'};
+  if(!best)return;
+  if(best.type===3){const ct=S.conts.get(best.i);S.search={c:ct,t:0,dur:ct.kind==='glass'?1.8:1.3,nt:0}}
+  else if(best.type===4||best.type===5){
+    const c=S.cre;S.seenHide=c.state==='chase'&&Math.hypot(c.x-S.px,c.y-S.py)<110;
+    S.hidden={x:(best.x+.5)*T,y:(best.y+.5)*T,car:best.type===5};showMsg(best.type===5?'You squeeze into the car and hold your breath.':'You hide inside the wardrobe. Don\'t breathe.',2);tone(200,.08,'square',.02)}
+  else if(best.type===6||best.type===7)leaveScav();
+  else if(best.type==='surv')meetSurvivor();
+  else if(best.type==='file')takeFile();
+}
+function takeFile(){
+  S.file=null;S.L.file=false;G.files++;const txt=FILES[G.files-1];
+  S.dlg=true;tone(400,.4,'sine',.05,.7);
+  dlg(`<div class="ic">📄</div><p class="dim small">STRANGE FILE ${G.files}/3</p><p><i>${txt}</i></p><button class="btn" onclick="closeDlg();S.dlg=false">Keep it</button>`);
+}
+function meetSurvivor(){
+  const id=S.surv.id,sv=SURV[id],full=G.people.length>=ST().cap;
+  S.dlg=true;for(const k in keys)keys[k]=false;
+  dlg(`<div class="ic">${sv.ic}</div><p><b>${sv.name}</b> <span class="dim">(${sv.role})</span></p><p>${sv.meet}</p><p class="small dim">${sv.desc}</p>
+  ${full?`<p class="red small">Your shelter is full (${ST().cap} people max). You can't take anyone else.</p>`:`<p class="small amber">Another mouth to feed: they'll need food and water every night.</p>`}
+  ${full?'':`<button class="btn amber" onclick="survChoice(true)">Bring ${sv.name} with you</button>`}
+  <button class="btn" onclick="survChoice(false)">Leave ${sv.name} behind</button>`);
+}
+function survChoice(take){
+  closeDlg();S.dlg=false;const id=S.surv.id,sv=SURV[id];
+  if(take){S.follower={id,x:S.surv.x,y:S.surv.y,ic:sv.ic,name:sv.name};showMsg(`${sv.name} is following you. Get back to the exit.`,3)}
+  else{G.left++;showMsg(`You walk away. You don't look back.`,3)}
+  S.surv=null;S.L.surv=null;
+}
+function leaveScav(){
+  const got={};for(const it of S.bag){if(it==='shovel'){G.tools.shovel=true}else if(it==='pickaxe'){G.tools.pickaxe=true}else G.inv[it]++;got[it]=(got[it]||0)+1}
+  const lst=Object.keys(got).map(k=>`${ITEMS[k]}${got[k]>1?' ×'+got[k]:''}`).join(' ');
+  S.L.visits++;S.L.bonus=false;
+  addLog(`🔦 You made it back from the ${LOCS[S.id].name.toLowerCase()}${lst?' with '+lst:' empty-handed'}.${S.dumped?` (Dumped ${S.dumped} dirt outside.)`:''}`);
+  if(S.follower){G.people.push(mkPerson(S.follower.id));G.rescued++;addLog(`${S.follower.ic} ${S.follower.name} joined your group.`,'')}
+  if(got.shovel)addLog('🪏 A real shovel! Digging is much faster now.');
+  if(got.pickaxe)addLog('⛏️ A pickaxe! You can dig through rock now.');
+  resetEnergy();
+  tone(330,.3,'sine',.05,1.3);
+  dayScreen();
+}
+function caught(){
+  if(!S.running)return;S.running=false;stopDrone();scream();
+  const y=you();y.hp-=45;
+  let txt=`🌑 It caught you at the ${LOCS[S.id].name.toLowerCase()}. You tore free and ran, but dropped everything (-45 HP).`;
+  if(S.follower){G.lost++;txt+=` ${S.follower.name} didn't make it out.`}
+  addLog(txt);S.L.visits++;
+  if(y.hp<=0){setTimeout(()=>finish('taken'),1400);return}
+  setTimeout(()=>{dayScreen();dlg(`<div class="ic">🌑</div><p>${txt}</p><button class="btn" onclick="closeDlg()">Breathe</button>`)},1400);
+}
+
+function scavLoop(now){
+  if(!S||!S.running){if(S&&S.caughtFlash)drawScav(0);return}
+  const dt=Math.min((now-S.last)/1000,.05);S.last=now;
+  if(!S.paused&&!S.dlg)updScav(dt);
+  if(S.running)drawScav(dt);
+  requestAnimationFrame(scavLoop);
+}
+function updScav(dt){
+  S.t+=dt;S.time-=dt;S.msgT-=dt;
+  if(S.time<=0&&!S.hunt){S.hunt=true;showMsg('⚠ It knows you\'re here. GET OUT.',4);scream();S.cre.dormant=0}
+  // movement
+  let mx=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0),my=(keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.ArrowUp?1:0);
+  const ml=Math.hypot(mx,my);
+  const sneak=keys.ShiftLeft||keys.ShiftRight,run=keys.Space&&!sneak;
+  S.mode=sneak?'sneak':run?'run':'walk';
+  if(S.hidden){/* frozen */}
+  else if(ml>0){
+    if(S.search){S.search=null;showMsg('Search interrupted.',1)}
+    mx/=ml;my/=ml;const sp=sneak?62:run?195:112;
+    const nx=S.px+mx*sp*dt;if(!blocked(nx,S.py,9))S.px=nx;
+    const ny=S.py+my*sp*dt;if(!blocked(S.px,ny,9))S.py=ny;
+    S.dir=Math.atan2(my,mx);
+    S.noiseT-=dt;
+    if(S.noiseT<=0){S.noiseT=sneak?.7:.42;
+      let r=sneak?28:run?270:105;if(S.follower)r*=1.3;
+      noise(S.px,S.py,r);
+      if(!sneak)tone(run?140:110,.04,'square',run?.03:.012);}
+  }
+  // search
+  if(S.search){const s=S.search;s.t+=dt;s.nt-=dt;if(s.nt<=0){s.nt=.5;noise(S.px,S.py,s.c.kind==='glass'?90:60)}
+    if(s.t>=s.dur){s.c.done=true;S.search=null;finishSearch(s.c)}}
+  // follower
+  S.trailT-=dt;if(S.trailT<=0&&!S.hidden){S.trailT=.08;S.trail.push([S.px,S.py]);if(S.trail.length>12)S.trail.shift()}
+  if(S.follower){const f=S.follower,tg=S.trail[0]||[S.px,S.py];const dx=tg[0]-f.x,dy=tg[1]-f.y,d=Math.hypot(dx,dy);
+    if(d>4){const s=Math.min(d,220*dt);f.x+=dx/d*s;f.y+=dy/d*s}
+    if(f.id==='leo'){S.cryT-=dt;if(S.cryT<=0){S.cryT=rnd(14,24);noise(f.x,f.y,230,'210,180,120');showMsg('🧒 Leo whimpers in the dark...',2);tone(500,.4,'sine',.03,.8)}}}
+  // survivor calling
+  if(S.surv){S.helpT-=dt;if(S.helpT<=0){S.helpT=5;S.help={x:S.surv.x,y:S.surv.y,life:1.6}}}
+  if(S.help)S.help.life-=dt;
+  // creature
+  const c=S.cre,pd=Math.hypot(c.x-S.px,c.y-S.py);c.anim+=dt;
+  if(c.dormant>0)c.dormant-=dt;
+  else{
+    const vis=(S.mode==='run'?230:S.mode==='sneak'?105:150);
+    const sees=!S.hidden&&pd<vis&&los(c.x,c.y,S.px,S.py);
+    if(sees||(S.hunt&&!S.hidden)){if(c.state!=='chase'&&sees){scream();showMsg('IT SEES YOU. RUN!',2)}c.state='chase';c.lostT=0;c.lastX=S.px;c.lastY=S.py}
+    if(c.state==='chase'){
+      if(S.hidden){if(S.seenHide){creMove(c,S.hidden.x,S.hidden.y,150,dt)}else{c.state='investigate';c.tx=c.lastX;c.ty=c.lastY;c.wait=0}}
+      else{if(!sees&&!S.hunt){c.lostT+=dt;if(c.lostT>2.5){c.state='investigate';c.tx=c.lastX;c.ty=c.lastY;c.wait=0}}
+        creMove(c,S.px,S.py,S.hunt?125:148,dt)}
+    }else if(c.state==='investigate'){
+      if(creMove(c,c.tx,c.ty,95,dt)){c.wait+=dt;if(c.wait>2.2){c.state='wander';[c.tx,c.ty]=randomFloor()}}
+    }else{
+      if(creMove(c,c.tx,c.ty,48,dt)){c.wait+=dt;if(c.wait>1.5){c.wait=0;[c.tx,c.ty]=randomFloor()}}
+    }
+    if(S.hidden?(S.seenHide&&Math.hypot(c.x-S.hidden.x,c.y-S.hidden.y)<26):pd<22)return caught();
+    if(S.follower&&Math.hypot(c.x-S.follower.x,c.y-S.follower.y)<22){
+      G.lost++;scream();addLog(`🕯️ ${S.follower.name} was taken in the dark.`);showMsg(`${S.follower.name} was taken!`,3);S.follower=null}
+  }
+  // heartbeat
+  if(pd<280&&c.dormant<=0){S.beatT-=dt;if(S.beatT<=0){S.beatT=.35+pd/280*.9;heartbeat()}}
+  // rings
+  for(const r of S.rings){r.life-=dt*1.4;r.r=r.R*(1-r.life)}
+  S.rings=S.rings.filter(r=>r.life>0);
+}
+function finishSearch(ct){
+  const L=LOCS[S.id],dep=1/(1+S.L.visits*.55),chance=Math.min(.97,.85*dep+(S.L.bonus?.25:0));
+  if(ct.kind==='glass'){noise(S.px,S.py,400,'140,200,255');hiss(.6,.3,6000);showMsg('💥 CRASH! The glass shattered!',2)}
+  if(Math.random()>chance){if(ct.kind!=='glass')showMsg('Empty.',1.2);return}
+  let n=ct.kind==='glass'?2+ri2(0,1):1+(Math.random()<.4?1:0);if(S.L.bonus)n++;
+  const got=[];
+  for(let i=0;i<n;i++){
+    if(S.bag.length>=S.cap){showMsg('Your bag is full!',1.5);break}
+    let it=wpick(L.loot);
+    if((it==='shovel'&&(G.tools.shovel||S.bag.includes('shovel')))||(it==='pickaxe'&&(G.tools.pickaxe||S.bag.includes('pickaxe'))))it=pick(['planks','food','water']);
+    S.bag.push(it);got.push(it);
+  }
+  if(got.length){showMsg('Found: '+got.map(k=>ITEMS[k]+' '+INAME[k]).join(', '),2.2);tone(520,.1,'sine',.04,1.4)}
+}
+
+function drawScav(dt){
+  const W=innerWidth,H=innerHeight,MWp=MW*T,MHp=MH*T;
+  const pxv=S.hidden?S.hidden.x:S.px,pyv=S.hidden?S.hidden.y:S.py;
+  const camx=MWp<W?(MWp-W)/2:clamp(pxv-W/2,0,MWp-W),camy=MHp<H?(MHp-H)/2:clamp(pyv-H/2,0,MHp-H);
+  cx.fillStyle='#050506';cx.fillRect(0,0,W,H);
+  cx.save();cx.translate(-camx,-camy);
+  const x0=Math.max(0,Math.floor(camx/T)),y0=Math.max(0,Math.floor(camy/T)),x1=Math.min(MW-1,Math.ceil((camx+W)/T)),y1=Math.min(MH-1,Math.ceil((camy+H)/T));
+  cx.textAlign='center';cx.textBaseline='middle';cx.font='18px serif';
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+    const c=S.m[y*MW+x],X=x*T,Y=y*T;
+    const indoor=x>=3&&x<=40&&y>=2&&y<=21;
+    cx.fillStyle=indoor?((x+y)%2?'#23211e':'#211f1c'):((x*7+y*3)%5?'#15181c':'#13161a');cx.fillRect(X,Y,T,T);
+    if(c===2){cx.fillStyle='#3d3833';cx.fillRect(X,Y,T,T);cx.fillStyle='#4a443e';cx.fillRect(X,Y,T,4)}
+    else if(c===3){const ct=S.conts.get(y*MW+x);cx.fillStyle=ct.done?'#2b2724':ct.kind==='glass'?'#2f4d63':'#5a432e';cx.fillRect(X+3,Y+3,T-6,T-6);
+      if(!ct.done){cx.fillText(ct.kind==='glass'?'🪟':ct.kind==='fridge'?'🧊':ct.kind==='desk'?'🗃️':ct.kind==='box'?'📦':'🗄️',X+T/2,Y+T/2+1)}}
+    else if(c===4){cx.fillStyle='#3a2a46';cx.fillRect(X+2,Y+2,T-4,T-4);cx.strokeStyle='#5c4670';cx.strokeRect(X+5,Y+5,T-10,T-10);cx.fillStyle='#8a6aa0';cx.fillRect(X+T/2-1,Y+10,2,12)}
+    else if(c===5){cx.fillStyle='#2b3542';cx.fillRect(X+1,Y+5,T-2,T-10);cx.fillStyle='#425166';cx.fillRect(X+6,Y+9,T-12,T-18)}
+    else if(c===7){cx.fillStyle='#4a3a22';cx.fillRect(X+5,Y+5,T-10,T-10);cx.strokeStyle='#8a6a3a';cx.strokeRect(X+8,Y+8,T-16,T-16)}
+  }
+  // file
+  if(S.file){cx.fillText('📄',S.file.x,S.file.y)}
+  if(S.surv){cx.font='24px serif';cx.fillText(SURV[S.surv.id].ic,S.surv.x,S.surv.y)}
+  if(S.follower){cx.font='22px serif';cx.fillText(S.follower.ic,S.follower.x,S.follower.y)}
+  // player
+  if(!S.hidden){cx.fillStyle='#d8d2c0';cx.beginPath();cx.arc(S.px,S.py,9,0,7);cx.fill();
+    cx.fillStyle='#8a836f';cx.beginPath();cx.arc(S.px+Math.cos(S.dir)*5,S.py+Math.sin(S.dir)*5,3,0,7);cx.fill()}
+  // creature
+  const c=S.cre;drawCreature(c);
+  cx.restore();
+  // darkness
+  const lx=pxv-camx,ly=pyv-camy,LR=S.hidden?90:S.mode==='sneak'?150:175;
+  const g=cx.createRadialGradient(lx,ly,LR*.25,lx,ly,LR);
+  g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,0.955)');
+  cx.fillStyle=g;cx.fillRect(0,0,W,H);
+  // above darkness
+  cx.save();cx.translate(-camx,-camy);
+  const pd=Math.hypot(c.x-pxv,c.y-pyv);
+  if(pd<340&&pd>LR*.8){const fl=.5+.5*Math.sin(S.t*3);cx.fillStyle=`rgba(255,40,30,${.55*fl*(1-pd/340)+.15})`;const a=Math.sin(c.anim*.7)*2;
+    cx.beginPath();cx.arc(c.x-5,c.y-14+a,2.4,0,7);cx.arc(c.x+5,c.y-14+a,2.4,0,7);cx.fill()}
+  cx.fillStyle='rgba(120,220,140,.55)';cx.font='16px serif';
+  const ex=S.tun?null:[21.5*T,27.5*T];
+  if(ex)cx.fillText('⬇ EXIT',ex[0],ex[1]);
+  for(let i=0;i<S.m.length;i++)if(S.m[i]===7)cx.fillText('⬇ HATCH',(i%MW+.5)*T,((i/MW|0)+.5)*T-20);
+  if(S.file){cx.fillStyle=`rgba(255,240,180,${.25+.2*Math.sin(S.t*4)})`;cx.beginPath();cx.arc(S.file.x,S.file.y,6,0,7);cx.fill()}
+  if(S.help&&S.help.life>0){cx.fillStyle=`rgba(230,200,140,${Math.min(1,S.help.life)*.7})`;cx.font='italic 15px Georgia';cx.fillText('...help...',S.help.x,S.help.y-24+S.help.life*6)}
+  for(const r of S.rings){cx.strokeStyle=`rgba(${r.col},${r.life*.45})`;cx.lineWidth=2;cx.beginPath();cx.arc(r.x,r.y,r.r,0,7);cx.stroke()}
+  if(S.hidden){cx.fillStyle='rgba(220,210,190,.6)';cx.font='13px Georgia';cx.fillText('hiding',S.hidden.x,S.hidden.y-24)}
+  if(S.search){const s=S.search,X=s.c.x*T,Y=s.c.y*T;cx.fillStyle='rgba(0,0,0,.6)';cx.fillRect(X-4,Y-12,T+8,7);cx.fillStyle='#d9a441';cx.fillRect(X-3,Y-11,(T+6)*s.t/s.dur,5)}
+  cx.restore();
+  // danger vignette
+  if(pd<280&&c.dormant<=0){const k=1-pd/280;const v=cx.createRadialGradient(W/2,H/2,Math.min(W,H)*.25,W/2,H/2,Math.max(W,H)*.7);v.addColorStop(0,'rgba(120,0,0,0)');v.addColorStop(1,`rgba(150,0,0,${k*.5})`);cx.fillStyle=v;cx.fillRect(0,0,W,H)}
+  // dog arrow
+  if(has('dog')){const a=Math.atan2(c.y-pyv,c.x-pxv),R=Math.min(W,H)/2-40;const ax=W/2+Math.cos(a)*R,ay=H/2+Math.sin(a)*R;
+    cx.save();cx.translate(ax,ay);cx.rotate(a);cx.fillStyle=pd<300?'#d24b43':pd<600?'#d9a441':'#6fae5a';cx.beginPath();cx.moveTo(14,0);cx.lineTo(-8,9);cx.lineTo(-8,-9);cx.fill();cx.restore();
+    cx.font='14px serif';cx.textAlign='center';cx.fillText('🐕',ax,ay-18)}
+  hudScav(W,H);
+}
+function drawCreature(c){
+  const t=c.anim;cx.save();cx.translate(c.x,c.y);
+  cx.fillStyle='#050505';cx.strokeStyle='#1a1414';cx.lineWidth=3;
+  for(let i=0;i<6;i++){const a=i/6*6.283+Math.sin(t*3+i)*.3;cx.beginPath();cx.moveTo(0,0);cx.quadraticCurveTo(Math.cos(a)*18,Math.sin(a)*18-6,Math.cos(a)*28,Math.sin(a)*24);cx.stroke()}
+  cx.beginPath();cx.ellipse(0,-6,13,20,Math.sin(t*2)*.1,0,7);cx.fill();
+  cx.fillStyle='#ff3020';const a=Math.sin(t*.7)*2;cx.beginPath();cx.arc(-5,-14+a,2.4,0,7);cx.arc(5,-14+a,2.4,0,7);cx.fill();
+  cx.restore();
+}
+function hudScav(W,H){
+  cx.textAlign='left';cx.textBaseline='top';
+  cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(10,10,280,78);
+  cx.fillStyle='#dcd8cc';cx.font='16px Georgia';cx.fillText(LOCS[S.id].ic+' '+LOCS[S.id].name,20,18);
+  const tm=Math.max(0,S.time),mm=Math.floor(tm/60),ss=String(Math.floor(tm%60)).padStart(2,'0');
+  cx.fillStyle=S.hunt?'#d24b43':tm<30?'#d9a441':'#8a8676';cx.font='14px Georgia';cx.fillText(S.hunt?'⚠ IT IS HUNTING YOU':`Safe for ${mm}:${ss}`,20,40);
+  cx.fillStyle=S.hidden?'#a088c0':S.mode==='run'?'#d24b43':S.mode==='sneak'?'#6fae5a':'#dcd8cc';
+  cx.fillText(S.hidden?'Hidden':S.mode==='run'?'Sprinting (LOUD)':S.mode==='sneak'?'Sneaking (quiet)':'Walking',20,60);
+  // bag
+  const cnt={};S.bag.forEach(k=>cnt[k]=(cnt[k]||0)+1);
+  const bt=`Bag ${S.bag.length}/${S.cap}  `+Object.keys(cnt).map(k=>ITEMS[k]+cnt[k]).join(' ');
+  cx.font='15px Georgia';const bw=cx.measureText(bt).width+24;
+  cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(W-bw-10,10,bw,34);cx.fillStyle='#dcd8cc';cx.textAlign='right';cx.fillText(bt,W-22,19);
+  // prompt
+  const pr=promptText();
+  if(pr){cx.textAlign='center';cx.font='16px Georgia';const w=cx.measureText(pr).width+30;cx.fillStyle='rgba(0,0,0,.65)';cx.fillRect(W/2-w/2,H-70,w,34);cx.fillStyle='#d9a441';cx.fillText(pr,W/2,H-61)}
+  if(S.msgT>0){cx.textAlign='center';cx.font='18px Georgia';cx.fillStyle=`rgba(230,225,210,${Math.min(1,S.msgT)})`;cx.fillText(S.msg,W/2,H*.18)}
+  cx.textAlign='left';cx.fillStyle='rgba(140,135,120,.7)';cx.font='12px Georgia';cx.fillText('WASD move · Shift sneak · Space sprint · E interact · P pause · M mute',12,H-22);
+  if(S.paused){cx.fillStyle='rgba(0,0,0,.6)';cx.fillRect(0,0,W,H);cx.fillStyle='#fff';cx.textAlign='center';cx.font='40px Georgia';cx.fillText('PAUSED',W/2,H/2-20);cx.font='16px Georgia';cx.fillStyle='#8a8676';cx.fillText('press P to continue',W/2,H/2+30)}
+}
+function promptText(){
+  if(S.hidden)return'[E] Leave hiding spot';
+  if(S.search)return'Searching... (moving cancels)';
+  if(S.surv&&Math.hypot(S.surv.x-S.px,S.surv.y-S.py)<46)return'[E] Talk';
+  if(S.file&&Math.hypot(S.file.x-S.px,S.file.y-S.py)<40)return'[E] Pick up the file';
+  const tx=Math.floor(S.px/T),ty=Math.floor(S.py/T);let best=null,bd=50;
+  for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const x=tx+dx,y=ty+dy;if(x<0||y<0||x>=MW||y>=MH)continue;const c=S.m[y*MW+x];
+    if(![3,4,5,6,7].includes(c))continue;if(c===3&&S.conts.get(y*MW+x).done)continue;const d=Math.hypot((x+.5)*T-S.px,(y+.5)*T-S.py);if(d<bd){bd=d;best=c}}
+  if(best===3)return'[E] Search';if(best===4)return'[E] Hide in wardrobe';if(best===5)return'[E] Hide in car';
+  if(best===6||best===7)return`[E] Go home${S.follower?' with '+S.follower.name:''}`;
+  return'';
+}
+
+/* ---------- endings ---------- */
+function finish(forced){
+  stopScav();closeDlg();
+  let e=forced;
+  const others=G.people.filter(p=>p.id!=='you');
+  if(!e){
+    const linked=Object.values(G.locs).filter(l=>l.tunnel).length;
+    if(G.files>=3)e='truth';
+    else if(linked>=4)e='underground';
+    else if(G.dexBetrayed)e='betrayed';
+    else if(others.length===0)e='alone';
+    else if(!G.deaths.length&&!G.lost&&!G.left&&G.rescued>=4)e='everyone';
+    else if(G.deaths.length||G.lost||G.left)e='hard';
+    else e='rescued';
+  }
+  saveEnding(e);
+  const names=others.map(p=>p.name);const nm=names.length?names.join(', '):'no one';
+  const gone=[...G.deaths];
+  const T={
+    everyone:`On day 20 the rotor blades cut through the silence. Every single person you found walked out beside you: ${nm}. Nobody left behind. Nobody lost. You did the impossible.`,
+    rescued:`Rescue arrived on day 20. You climbed into the helicopter with ${nm}. Below you, something tall and dark stood perfectly still in the street, listening to you leave.`,
+    hard:`Rescue arrived on day 20. You made it out with ${nm}. But not everyone did.${gone.length?' You think about '+gone.join(', ')+'.':''}${G.left?' And you think about the ones you walked away from.':''} You did what you had to. Didn't you?`,
+    alone:`The helicopter came on day 20. You climbed aboard with no one beside you. The pilot asks if there's anyone else. You don't answer. You survived. Was it worth it?`,
+    underground:`By day 20 nobody had to step outside at all. Your tunnels linked the whole street: a hidden city right under the creature's feet. When rescue finally came, ${nm==='no one'?'you':'you and '+nm} almost didn't want to leave.`,
+    sewers:`You led ${nm==='no one'?'yourself':'everyone ('+nm+')'} down into the storm sewers. Hours of black water and echoes. Then a ladder, a grate, and fresh air. You climbed out past the edge of the city into birdsong. It never followed.`,
+    truth:`Three files. One answer. The creature was Project Listener, built to hunt anything that makes a sound. It escaped. ${has('leo')?'On day 20, Leo takes your hand. "It\'s not angry," he whispers. "It\'s lonely." He walks out into the street before you can stop him, and the creature lowers itself to the ground in front of him and goes completely still.':'Somewhere out there is a boy it never hurt. Maybe next time you\'ll find him.'} Rescue arrives. The truth goes with you.`,
+    betrayed:`Rescue arrived on day 20. When you reached the helicopter, Dex was already on board, eating your food. He didn't look at you. ${others.length?'You climb in with '+nm+' and sit as far from him as you can.':'You climb in alone.'}`,
+    taken:`It found you. Nobody knows exactly what happened next. The quiet outside got a little quieter.`,
+    starved:`You made it through ${G.day-1} nights. In the end it wasn't the creature that got you. It was the empty cupboards.`,
+    buried:`The tunnel groaned, then gave way. The earth closed over you, as silent as the thing up above.`
+  }[e];
+  const E=ENDINGS[e],got=gotEndings();
+  if(['taken','buried'].includes(e))scream();else tone(e==='starved'?110:330,1.5,'sine',.05,e==='starved'?.5:1.5);
+  show(`<div class="wrap"><div class="ending"><div class="ic">${E.ic}</div><p class="dim small" style="letter-spacing:.2em">ENDING</p><h1 style="margin:0 0 20px;font-size:clamp(30px,6vw,54px)">${E.t}</h1><p>${T}</p>
+  <p class="dim small" style="margin-top:24px">Survived ${Math.min(G.day,G.max)} day${G.day>1?'s':''} · Rescued ${G.rescued} · Lost ${G.deaths.length+G.lost} · Left behind ${G.left} · Files ${G.files}/3</p>
+  <h3>Endings found ${got.length}/${Object.keys(ENDINGS).length}</h3>
+  <div class="elist">${Object.keys(ENDINGS).map(k=>got.includes(k)?`<span class="got">${ENDINGS[k].ic} ${ENDINGS[k].t}</span>`:'<span>???</span>').join('')}</div>
+  <button class="btn big" onclick="startPick()">PLAY AGAIN</button><br><button class="btn" style="margin-top:10px" onclick="titleScreen()">Title screen</button></div></div>`);
+}
+
+titleScreen();
+</script>
+</body>
+</html>
