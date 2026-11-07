@@ -1,0 +1,6 @@
+{
+  "name": "survive",
+  "compatibility_date": "2025-10-01",
+  "assets": { "directory": "./public" },
+  "routes": [{ "pattern": "survive.jamietaylor.org", "custom_domain": true }]
+}
